@@ -1,4 +1,4 @@
-package com.survey.surveysystem.web.controller.department;
+package com.survey.surveysystem.web.controller;
 
 import com.survey.surveysystem.domain.entity.Department;
 import com.survey.surveysystem.domain.service.department.DepartmentService;

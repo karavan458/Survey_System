@@ -1,4 +1,4 @@
-package com.survey.surveysystem.web.controller.user;
+package com.survey.surveysystem.web.controller;
 
 import com.survey.surveysystem.domain.entity.User;
 import com.survey.surveysystem.domain.service.user.UserService;
