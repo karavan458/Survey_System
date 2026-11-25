@@ -1,4 +1,4 @@
-package com.survey.surveysystem.domain.service.department;
+package com.survey.surveysystem.domain.service;
 
 import com.survey.surveysystem.domain.entity.Department;
 import com.survey.surveysystem.domain.repository.department.DepartmentRepository;

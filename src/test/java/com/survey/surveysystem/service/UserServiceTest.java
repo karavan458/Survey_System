@@ -4,7 +4,7 @@ import com.survey.surveysystem.domain.entity.Department;
 import com.survey.surveysystem.domain.entity.User;
 import com.survey.surveysystem.domain.repository.department.DepartmentRepository;
 import com.survey.surveysystem.domain.repository.user.UserRepository;
-import com.survey.surveysystem.domain.service.user.UserService;
+import com.survey.surveysystem.domain.service.UserService;
 import com.survey.surveysystem.global.exception.CustomException;
 import com.survey.surveysystem.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;

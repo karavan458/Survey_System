@@ -2,7 +2,7 @@ package com.survey.surveysystem.service;
 
 import com.survey.surveysystem.domain.entity.Department;
 import com.survey.surveysystem.domain.repository.department.DepartmentRepository;
-import com.survey.surveysystem.domain.service.department.DepartmentService;
+import com.survey.surveysystem.domain.service.DepartmentService;
 import com.survey.surveysystem.global.exception.CustomException;
 import com.survey.surveysystem.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;

@@ -1,7 +1,7 @@
 package com.survey.surveysystem.web.controller;
 
 import com.survey.surveysystem.domain.entity.User;
-import com.survey.surveysystem.domain.service.user.UserService;
+import com.survey.surveysystem.domain.service.UserService;
 import com.survey.surveysystem.web.dto.user.request.UserCreateRequest;
 import com.survey.surveysystem.web.dto.user.request.UserDepartmentChangeRequest;
 import com.survey.surveysystem.web.dto.user.request.UserPositionChangeRequest;

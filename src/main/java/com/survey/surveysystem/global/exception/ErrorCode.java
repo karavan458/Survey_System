@@ -11,7 +11,9 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "중복된 이메일입니다."),
     INVALID_SURVEY_TRANSITION(HttpStatus.BAD_REQUEST, "유효하지 않은 설문 상태 변경입니다."),
-    SURVEY_NOT_EDITABLE(HttpStatus.FORBIDDEN, "DRAFT 상태의 설문만 수정 가능합니다.");
+    SURVEY_NOT_EDITABLE(HttpStatus.FORBIDDEN, "DRAFT 상태의 설문만 수정 가능합니다."),
+    SATISFACTION_QUESTION_INVALID(HttpStatus.BAD_REQUEST, "만족도 문항은 1개이여야 합니다."),
+    INVALID_TARGET_DEPARTMENT_FOR_MANAGER(HttpStatus.FORBIDDEN, "매니저는 본인의 소속 부서만 타겟으로 지정할 수 있습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

@@ -1,7 +1,7 @@
 package com.survey.surveysystem.web.controller;
 
 import com.survey.surveysystem.domain.entity.Survey;
-import com.survey.surveysystem.domain.service.survey.SurveyService;
+import com.survey.surveysystem.domain.service.SurveyService;
 import com.survey.surveysystem.web.dto.survey.request.SurveyCreateRequest;
 import com.survey.surveysystem.web.dto.survey.request.SurveyStatusChangeRequest;
 import com.survey.surveysystem.web.dto.survey.request.SurveyUpdateRequest;
