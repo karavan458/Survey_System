@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +49,11 @@ public class QuestionOptionService {
         QuestionOption option = findById(optionId);
         validateDraft(option.getQuestion().getSurvey());
         option.delete();
+    }
+
+    public Map<Long, List<QuestionOption>> getOptionLookup(List<Long> questionIds) {
+        return optionRepository.findByQuestionIdIn(questionIds).stream()
+                .collect(Collectors.groupingBy(option -> option.getQuestion().getId()));
     }
 
     private void validateDraft(Survey survey) {

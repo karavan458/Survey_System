@@ -52,6 +52,11 @@ public class SurveyService {
         survey.delete();
     }
 
+    public Survey getSurvey(Long id) {
+        return surveyRepository.findByIdWithCreator(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.ENTITY_NOT_FOUND));
+    }
+
     private Survey findById(Long id) {
         return surveyRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.ENTITY_NOT_FOUND));

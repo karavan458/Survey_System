@@ -1,10 +1,17 @@
 package com.survey.surveysystem.web.controller;
 
+import com.survey.surveysystem.domain.entity.Question;
+import com.survey.surveysystem.domain.entity.QuestionOption;
 import com.survey.surveysystem.domain.entity.Survey;
+import com.survey.surveysystem.domain.service.QuestionOptionService;
+import com.survey.surveysystem.domain.service.QuestionService;
 import com.survey.surveysystem.domain.service.SurveyService;
+import com.survey.surveysystem.web.dto.question.response.QuestionDetailResponse;
+import com.survey.surveysystem.web.dto.question.response.QuestionOptionResponse;
 import com.survey.surveysystem.web.dto.survey.request.SurveyCreateRequest;
 import com.survey.surveysystem.web.dto.survey.request.SurveyStatusChangeRequest;
 import com.survey.surveysystem.web.dto.survey.request.SurveyUpdateRequest;
+import com.survey.surveysystem.web.dto.survey.response.SurveyDetailResponse;
 import com.survey.surveysystem.web.dto.survey.response.SurveyResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +29,8 @@ import java.util.List;
 public class SurveyController {
 
     private final SurveyService surveyService;
+    private final QuestionService questionService;
+    private final QuestionOptionService optionService;
 
     @PostMapping
     public ResponseEntity<SurveyResponse> createSurvey(@Valid @RequestBody SurveyCreateRequest request) {
@@ -38,6 +49,30 @@ public class SurveyController {
                 .toList();
 
         return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SurveyDetailResponse> getSurvey(@PathVariable Long id) {
+        Survey survey = surveyService.getSurvey(id);
+        List<Question> questions = questionService.getQuestions(id);
+
+        List<Long> questionIds = questions.stream()
+                .map(Question::getId)
+                .toList();
+        Map<Long, List<QuestionOption>> optionLookup = optionService.getOptionLookup(questionIds);
+
+        List<QuestionDetailResponse> questionResponses = IntStream.range(0, questions.size())
+                .mapToObj(i -> {
+                    Question question = questions.get(i);
+                    List<QuestionOption> options = optionLookup.getOrDefault(question.getId(), List.of());
+                    List<QuestionOptionResponse> optionResponses = IntStream.range(0, options.size())
+                            .mapToObj(j -> QuestionOptionResponse.from(options.get(j), j + 1))
+                            .toList();
+                    return QuestionDetailResponse.from(question, i + 1, optionResponses);
+                })
+                .toList();
+
+        return ResponseEntity.ok(SurveyDetailResponse.from(survey, questionResponses));
     }
 
     @PutMapping("/{id}")
