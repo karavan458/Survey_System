@@ -111,22 +111,34 @@ public class QuestionServiceTest {
     }
 
     @Test
-    @DisplayName("기존 문항을 수정해 만족도로 변경해도 만족도 문항은 반드시 마지막에 위치")
-    void updateQuestion_SatisfactionInEnd() {
+    @DisplayName("만족도 문항은 RATING 타입을 보장")
+    void createQuestion_satisfactionMustRATING() {
+        // given
+        Survey survey = draftSurvey();
+        when(surveyRepository.findById(1L)).thenReturn(Optional.of(survey));
+        when(questionRepository.existsBySurveyIdAndIsSatisfactionTrue(1L)).thenReturn(false);
+
+        // when, then
+        assertThatThrownBy(() -> questionService.createQuestion(1L, "만족도 확인", Question.QuestionType.SINGLE_CHOICE, true, true))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.SATISFACTION_MUST_BE_RATING);
+    }
+
+    @Test
+    @DisplayName("문항을 수정하면 내용이 반영")
+    void updateQuestion() {
         // given
         Survey survey = draftSurvey();
         Question question = Question.create(survey, "내용", Question.QuestionType.TEXT, 1, true, false);
-
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-        when(questionRepository.existsBySurveyIdAndIsSatisfactionTrue(survey.getId())).thenReturn(false);
-        when(questionRepository.findMaxOrderNumBySurveyId(survey.getId())).thenReturn(3);
 
         // when
-        questionService.updateQuestion(1L, "만족도로 수정된 질문", true, true);
+        questionService.updateQuestion(1L, "수정된 내용", false);
 
         // then
-        assertThat(question.getOrderNum()).isEqualTo(4);
-        assertThat(question.isSatisfaction()).isTrue();
+        assertThat(question.getContent()).isEqualTo("수정된 내용");
+        assertThat(question.isRequired()).isFalse();
     }
 
     @Test

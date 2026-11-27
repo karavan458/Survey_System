@@ -26,6 +26,7 @@ public class QuestionService {
         Survey survey = findSurvey(surveyId);
         validateDraft(survey);
         validateSingleSatisfaction(surveyId, isSatisfaction);
+        validateSatisfactionIsRating(type,isSatisfaction);
 
         int orderNum = resolveOrderNum(surveyId, isSatisfaction);
         Question question = Question.create(survey, content, type, orderNum, isRequired, isSatisfaction);
@@ -37,17 +38,10 @@ public class QuestionService {
     }
 
     @Transactional
-    public void updateQuestion(Long questionId, String content, boolean isRequired, boolean isSatisfaction) {
+    public void updateQuestion(Long questionId, String content, boolean isRequired) {
         Question question = findById(questionId);
         validateDraft(question.getSurvey());
-
-        boolean satisfaction = isSatisfaction && !question.isSatisfaction();
-        if(satisfaction) {
-            Long surveyId = question.getSurvey().getId();
-            validateSingleSatisfaction(surveyId, true);
-            question.moveToEnd(currentMaxOrderNum(surveyId));
-        }
-        question.update(content, isRequired, isSatisfaction);
+        question.update(content, isRequired);
     }
 
     @Transactional
@@ -67,6 +61,12 @@ public class QuestionService {
     private void validateSingleSatisfaction(Long surveyId, boolean isSatisfaction) {
         if(isSatisfaction && questionRepository.existsBySurveyIdAndIsSatisfactionTrue(surveyId)) {
             throw new CustomException(ErrorCode.SATISFACTION_QUESTION_INVALID);
+        }
+    }
+
+    private void validateSatisfactionIsRating(Question.QuestionType type, boolean isSatisfaction) {
+        if(isSatisfaction && type != Question.QuestionType.RATING) {
+            throw new CustomException(ErrorCode.SATISFACTION_MUST_BE_RATING);
         }
     }
 

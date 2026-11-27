@@ -44,7 +44,7 @@ public class QuestionController {
     @PutMapping("/{questionId}")
     public ResponseEntity<Void> updateQuestion(@PathVariable Long surveyId, @PathVariable Long questionId,
             @Valid @RequestBody QuestionUpdateRequest request) {
-        questionService.updateQuestion(questionId, request.content(), request.isRequired(), request.isSatisfaction());
+        questionService.updateQuestion(questionId, request.content(), request.isRequired());
         return ResponseEntity.noContent().build();
     }
 

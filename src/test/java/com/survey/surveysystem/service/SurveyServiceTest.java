@@ -1,8 +1,8 @@
 package com.survey.surveysystem.service;
 
-import com.survey.surveysystem.domain.entity.Department;
-import com.survey.surveysystem.domain.entity.Survey;
-import com.survey.surveysystem.domain.entity.User;
+import com.survey.surveysystem.domain.entity.*;
+import com.survey.surveysystem.domain.repository.question.QuestionOptionRepository;
+import com.survey.surveysystem.domain.repository.question.QuestionRepository;
 import com.survey.surveysystem.domain.repository.survey.SurveyRepository;
 import com.survey.surveysystem.domain.repository.user.UserRepository;
 import com.survey.surveysystem.domain.service.SurveyService;
@@ -14,10 +14,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
+import static com.survey.surveysystem.domain.entity.Survey.SurveyStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,6 +34,12 @@ public class SurveyServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private QuestionRepository questionRepository;
+
+    @Mock
+    private QuestionOptionRepository optionRepository;
 
     @InjectMocks
     private SurveyService surveyService;
@@ -77,12 +86,70 @@ public class SurveyServiceTest {
         // given
         Survey survey = Survey.create("제목", "설명", false, LocalDate.now(), LocalDate.now().plusDays(7), creator());
         when(surveyRepository.findById(1L)).thenReturn(Optional.of(survey));
+        when(questionRepository.existsBySurveyIdAndIsSatisfactionTrue(1L)).thenReturn(true);
+        when(questionRepository.findBySurveyIdOrderByOrderNum(1L)).thenReturn(List.of());
 
         // when
-        surveyService.changeStatus(1L, Survey.SurveyStatus.ACTIVE);
+        surveyService.changeStatus(1L, ACTIVE);
 
         // then
-        assertThat(survey.getStatus()).isEqualTo(Survey.SurveyStatus.ACTIVE);
+        assertThat(survey.getStatus()).isEqualTo(ACTIVE);
+    }
+
+    @Test
+    @DisplayName("만족도 문항이 없으면, ACTIVE 전환 불가")
+    void changeStatus_noSatisfaction_throws() {
+        // given
+        Survey survey = Survey.create("제목", "설명", false, LocalDate.now(), LocalDate.now().plusDays(7), creator());
+        when(surveyRepository.findById(1L)).thenReturn(Optional.of(survey));
+        when(questionRepository.existsBySurveyIdAndIsSatisfactionTrue(1L)).thenReturn(false);
+
+        // when, then
+        assertThatThrownBy(() -> surveyService.changeStatus(1L, ACTIVE))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.SATISFACTION_QUESTION_INVALID);
+    }
+
+    @Test
+    @DisplayName("선택형 문항에 답변 옵션이 없으면 ACTIVE 전환 불가")
+    void changeStatus_emptyChoiceOptions_throws() {
+        // given
+        Survey survey = Survey.create("제목", "설명", false, LocalDate.now(), LocalDate.now().plusDays(7), creator());
+        Question question = Question.create(survey, "질문", Question.QuestionType.SINGLE_CHOICE, 1, true, false);
+        ReflectionTestUtils.setField(question, "id", 10L);
+
+        when(surveyRepository.findById(1L)).thenReturn(Optional.of(survey));
+        when(questionRepository.existsBySurveyIdAndIsSatisfactionTrue(1L)).thenReturn(true);
+        when(questionRepository.findBySurveyIdOrderByOrderNum(1L)).thenReturn(List.of(question));
+        when(optionRepository.findByQuestionIdIn(List.of(10L))).thenReturn(List.of());
+
+        // when, then
+        assertThatThrownBy(() -> surveyService.changeStatus(1L, ACTIVE))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.QUESTION_OPTION_REQUIRED);
+    }
+
+    @Test
+    @DisplayName("만족도 문항, 선택형 문항의 답변 옵션이 모두 있으면 ACTIVE 전환 가능")
+    void changeStatus_toACTIVE() {
+        // given
+        Survey survey = Survey.create("제목", "설명", false, LocalDate.now(), LocalDate.now().plusDays(7), creator());
+        Question question = Question.create(survey, "질문", Question.QuestionType.SINGLE_CHOICE, 1, true, false);
+        ReflectionTestUtils.setField(question, "id", 10L);
+        QuestionOption option = QuestionOption.create(question, "답변 선택지", 1);
+
+        when(surveyRepository.findById(1L)).thenReturn(Optional.of(survey));
+        when(questionRepository.existsBySurveyIdAndIsSatisfactionTrue(1L)).thenReturn(true);
+        when(questionRepository.findBySurveyIdOrderByOrderNum(1L)).thenReturn(List.of(question));
+        when(optionRepository.findByQuestionIdIn(List.of(10L))).thenReturn(List.of(option));
+
+        // when
+        surveyService.changeStatus(1L, ACTIVE);
+
+        // then
+        assertThat(survey.getStatus()).isEqualTo(ACTIVE);
     }
 
     @Test
@@ -104,7 +171,7 @@ public class SurveyServiceTest {
     void updateSurvey_whenACTIVE() {
         // given
         Survey survey = Survey.create("제목", "설명", false, LocalDate.now(), LocalDate.now().plusDays(7), creator());
-        survey.changeStatus(Survey.SurveyStatus.ACTIVE);
+        survey.changeStatus(ACTIVE);
         when(surveyRepository.findById(1L)).thenReturn(Optional.of(survey));
 
         // when, then
@@ -120,12 +187,12 @@ public class SurveyServiceTest {
     void changeStatus_whenCLOSED() {
         // given
         Survey survey = Survey.create("제목", "설명", false, LocalDate.now(), LocalDate.now().plusDays(7), creator());
-        survey.changeStatus(Survey.SurveyStatus.ACTIVE);
-        survey.changeStatus(Survey.SurveyStatus.CLOSED);
+        survey.changeStatus(ACTIVE);
+        survey.changeStatus(CLOSED);
         when(surveyRepository.findById(1L)).thenReturn(Optional.of(survey));
 
         // when, then
-        assertThatThrownBy(() -> surveyService.changeStatus(1L, Survey.SurveyStatus.DRAFT))
+        assertThatThrownBy(() -> surveyService.changeStatus(1L, DRAFT))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.INVALID_SURVEY_TRANSITION);

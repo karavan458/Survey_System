@@ -45,10 +45,9 @@ public class Question extends BaseEntity {
         return new Question(survey, content, type, orderNum, isRequired, isSatisfaction);
     }
 
-    public void update(String content, boolean isRequired, boolean isSatisfaction) {
+    public void update(String content, boolean isRequired) {
         this.content = content;
         this.isRequired = isRequired;
-        this.isSatisfaction = isSatisfaction;
     }
 
     public enum QuestionType {

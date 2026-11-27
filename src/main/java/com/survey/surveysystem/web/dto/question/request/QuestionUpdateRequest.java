@@ -7,8 +7,6 @@ public record QuestionUpdateRequest(
         @NotBlank
         String content,
         @NotNull
-        Boolean isRequired,
-        @NotNull
-        Boolean isSatisfaction
+        Boolean isRequired
 ) {
 }
